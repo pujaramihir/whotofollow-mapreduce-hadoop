@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
@@ -71,7 +72,17 @@ public class whotofollow {
 			
 			StringBuffer stringBuffer = new StringBuffer("");
 			
-			System.out.println(key);
+			// generate iterator from iterable
+			Iterator<IntWritable> intValues = values.iterator(); 
+			
+			// take all elements one by one from iterator and store it to string buffer
+			while (intValues.hasNext()) {
+            	
+                int whofollowsuser = intValues.next().get();
+                stringBuffer.append(whofollowsuser+ " ");
+                
+            }
+            
 		}
 	}
 	
