@@ -13,7 +13,6 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.Mapper.Context;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
@@ -28,7 +27,7 @@ public class whotofollow {
 	 * @author Mihir Pujara
 	 *
 	 */
-	public class MapperFirst extends Mapper<Object, Text, IntWritable, IntWritable> {
+	public static class MapperFirst extends Mapper<Object, Text, IntWritable, IntWritable> {
 
 		public void map(Object key, Text values, Context context) throws IOException, InterruptedException {
 
@@ -66,7 +65,8 @@ public class whotofollow {
 	 * @author Mihir Pujara
 	 *
 	 */
-	public class ReducerFirst extends Reducer<IntWritable, IntWritable, IntWritable, Text> {
+	public static class ReducerFirst extends Reducer<IntWritable, IntWritable, IntWritable, Text> {
+
 		public void reduce(IntWritable key, Iterable<IntWritable> values, Context context)
 				throws IOException, InterruptedException {
 
@@ -74,18 +74,14 @@ public class whotofollow {
 
 			StringBuffer stringBuffer = new StringBuffer("");
 
-			// generate iterator from iterable
-			Iterator<IntWritable> intValues = values.iterator();
+			// take all elements one by one from iterator and store it to
+			// stringbuffer
+			while (values.iterator().hasNext()) {
 
-			// take all elements one by one from iterator and store it to string
-			// buffer
-			while (intValues.hasNext()) {
-
-				int whofollowsuser = intValues.next().get();
+				int whofollowsuser = values.iterator().next().get();
 				stringBuffer.append(whofollowsuser + " ");
 
 			}
-
 			// emit user and result
 			Text result = new Text(stringBuffer.toString());
 			context.write(user, result);
@@ -104,12 +100,11 @@ public class whotofollow {
 
 			// String Tockenizer used to separate values from text file
 			StringTokenizer st1 = new StringTokenizer(values.toString());
+
 			StringTokenizer st2 = new StringTokenizer(values.toString());
 
 			IntWritable follower1 = new IntWritable();
 			IntWritable follower2 = new IntWritable();
-			
-			ArrayList<Point> data = new ArrayList<Point>();
 
 			int temp;
 
@@ -117,7 +112,6 @@ public class whotofollow {
 			st2.nextToken();
 
 			if (first < 0) {
-
 				// Emits Negative values from key value pairs
 				while (st1.hasMoreTokens()) {
 
@@ -126,8 +120,11 @@ public class whotofollow {
 
 					context.write(follower1, follower2);
 				}
+
 				return;
 			}
+
+			ArrayList<Point> data = new ArrayList<Point>();
 
 			// Generate key value pair (yi, yj) and (yj, yi)
 			while (st1.hasMoreTokens()) {
@@ -156,9 +153,10 @@ public class whotofollow {
 	}
 
 	/**
-	 * ReducerSecond class finds recommended users and common friends between them 
+	 * ReducerSecond class finds recommended users and common friends between
+	 * them
 	 * 
-	 * @author mohit
+	 * @author Mohit Pujara
 	 *
 	 */
 	public static class ReducerSecond extends Reducer<IntWritable, IntWritable, IntWritable, Text> {
@@ -169,16 +167,17 @@ public class whotofollow {
 			public int count = 0;
 		}
 
+		// The reduce method
 		public void reduce(IntWritable key, Iterable<IntWritable> values, Context context)
 				throws IOException, InterruptedException {
 
 			IntWritable user = key;
+
 			HashMap<Integer, Followers> data = new HashMap<Integer, Followers>();
+
 			StringBuffer stringBuffer = new StringBuffer("");
+
 			Iterator<IntWritable> i = values.iterator();
-			Iterator<Integer> s = data.keySet().iterator();
-			ArrayList<Followers> finalData = new ArrayList<Followers>();
-			Iterator<Followers> d = finalData.iterator();
 
 			// Stores number of followed users and counts
 			while (i.hasNext()) {
@@ -203,9 +202,15 @@ public class whotofollow {
 					}
 					data.put(Math.abs(whofollowsuser), followers);
 				}
+
 			}
-			
-			// Removes the number and its negation if found, also removed remaining negative numbers if any
+
+			Iterator<Integer> s = data.keySet().iterator();
+
+			ArrayList<Followers> finalData = new ArrayList<Followers>();
+
+			// Removes the number and its negation if found, also removed
+			// remaining negative numbers if any
 			while (s.hasNext()) {
 				Followers f = data.get(s.next());
 				if (!(f.positive == Math.abs(f.negative)) && f.positive > 0) {
@@ -215,9 +220,10 @@ public class whotofollow {
 					}
 				}
 			}
-			
+
 			// sorts the recommended users according more common friends
 			finalData.sort(new Comparator<Followers>() {
+
 				@Override
 				public int compare(Followers o1, Followers o2) {
 					if (o2.count > o1.count) {
@@ -228,61 +234,52 @@ public class whotofollow {
 					return 0;
 				}
 			});
-			
+
+			Iterator<Followers> d = finalData.iterator();
 			// Append the recommended users and its common user count
 			while (d.hasNext()) {
 				Followers f = d.next();
 
 				stringBuffer.append(f.positive + "(" + f.count + ") ");
 			}
-			
+
 			// Emit key value pairs
 			Text result = new Text(stringBuffer.toString());
 			context.write(user, result);
+
 		}
 	}
 
-	public static void main(String[] args)
-			throws ClassNotFoundException, IllegalStateException, IllegalArgumentException, InterruptedException {
+	public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
 
 		// create configuration
 		Configuration conf = new Configuration();
 
 		// create job for first map reduce task
-		Job firstJob;
-		try {
+		Job firstJob = Job.getInstance(conf, "who to follow first job");
+		firstJob.setJarByClass(whotofollow.class);
+		firstJob.setMapperClass(MapperFirst.class);
+		firstJob.setReducerClass(ReducerFirst.class);
+		firstJob.setOutputKeyClass(IntWritable.class);
+		firstJob.setOutputValueClass(IntWritable.class);
+		FileInputFormat.addInputPath(firstJob, new Path(args[0]));
+		FileOutputFormat.setOutputPath(firstJob, new Path(args[1]));
 
-			firstJob = Job.getInstance(conf, "who to follow first job");
-			firstJob.setJarByClass(whotofollow.class);
-			firstJob.setMapperClass(MapperFirst.class);
-			firstJob.setReducerClass(ReducerFirst.class);
-			firstJob.setOutputKeyClass(IntWritable.class);
-			firstJob.setOutputValueClass(IntWritable.class);
-
-			FileInputFormat.addInputPath(firstJob, new Path(args[0]));
-			FileOutputFormat.setOutputPath(firstJob, new Path(args[1]));
-
-			// Check whether first job is completed or not
-			if (firstJob.waitForCompletion(true)) {
-
-				// second job
-				Configuration conf2 = new Configuration();
-				Job secondJob = Job.getInstance(conf2, "who to follow second job");
-				secondJob.setJarByClass(whotofollow.class);
-				secondJob.setMapperClass(MapperSecond.class);
-				secondJob.setReducerClass(ReducerSecond.class);
-				secondJob.setOutputKeyClass(IntWritable.class);
-				secondJob.setOutputValueClass(IntWritable.class);
-
-				FileInputFormat.addInputPath(secondJob, new Path(args[1]));
-				FileOutputFormat.setOutputPath(secondJob, new Path(args[2]));
-
-				System.exit(secondJob.waitForCompletion(true) ? 0 : 1);
-			}
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		// Check whether first job is completed or not
+		if (firstJob.waitForCompletion(true)) {
+			// second job
+			Configuration conf2 = new Configuration();
+			Job secondJob = Job.getInstance(conf2, "who to follow second job");
+			secondJob.setJarByClass(whotofollow.class);
+			secondJob.setMapperClass(MapperSecond.class);
+			secondJob.setReducerClass(ReducerSecond.class);
+			secondJob.setOutputKeyClass(IntWritable.class);
+			secondJob.setOutputValueClass(IntWritable.class);
+			FileInputFormat.addInputPath(secondJob, new Path(args[1]));
+			FileOutputFormat.setOutputPath(secondJob, new Path(args[2]));
+			System.exit(secondJob.waitForCompletion(true) ? 0 : 1);
 		}
+
 	}
+
 }
