@@ -86,7 +86,6 @@ public class whotofollow {
 			// emit user and result
 			Text result = new Text(stringBuffer.toString());
             context.write(user, result);
-            
 		}
 	}
 	
