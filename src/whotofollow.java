@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -28,6 +29,11 @@ public class whotofollow {
 	public class MapperFirst extends Mapper<Object, Text, IntWritable, IntWritable> {
 		
 		public void map(Object key, Text values, Context context) throws IOException, InterruptedException {
+			
+			// Key is ignored as.i""t only stores the offset of the line in the text file
+            StringTokenizer st = new StringTokenizer(values.toString());
+            
+            System.out.println(st.toString());
 			
 		}
 	}
