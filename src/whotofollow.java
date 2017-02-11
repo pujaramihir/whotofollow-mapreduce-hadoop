@@ -215,6 +215,19 @@ public class whotofollow {
 					}
 				}
 			}
+			
+			// sorts the recommended users according more common friends
+			finalData.sort(new Comparator<Followers>() {
+				@Override
+				public int compare(Followers o1, Followers o2) {
+					if (o2.count > o1.count) {
+						return 1;
+					} else if (o2.count < o1.count) {
+						return -1;
+					}
+					return 0;
+				}
+			});
 		}
 	}
 
