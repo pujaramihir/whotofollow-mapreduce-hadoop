@@ -155,6 +155,12 @@ public class whotofollow {
 		}
 	}
 
+	/**
+	 * ReducerSecond class finds recommended users and common friends between them 
+	 * 
+	 * @author mohit
+	 *
+	 */
 	public static class ReducerSecond extends Reducer<IntWritable, IntWritable, IntWritable, Text> {
 
 		public class Followers {
@@ -163,7 +169,6 @@ public class whotofollow {
 			public int count = 0;
 		}
 
-		// The reduce method
 		public void reduce(IntWritable key, Iterable<IntWritable> values, Context context)
 				throws IOException, InterruptedException {
 
@@ -175,6 +180,30 @@ public class whotofollow {
 			ArrayList<Followers> finalData = new ArrayList<Followers>();
 			Iterator<Followers> d = finalData.iterator();
 
+			// Stores number of followed users and counts
+			while (i.hasNext()) {
+
+				int whofollowsuser = i.next().get();
+
+				if (data.containsKey(Math.abs(whofollowsuser))) {
+					Followers followers = data.get(Math.abs(whofollowsuser));
+					if (whofollowsuser < 0) {
+						followers.negative = whofollowsuser;
+					} else {
+						followers.positive = whofollowsuser;
+						++followers.count;
+					}
+				} else {
+					Followers followers = new Followers();
+					if (whofollowsuser < 0) {
+						followers.negative = whofollowsuser;
+					} else {
+						followers.positive = whofollowsuser;
+						++followers.count;
+					}
+					data.put(Math.abs(whofollowsuser), followers);
+				}
+			}
 		}
 	}
 
