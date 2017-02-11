@@ -108,6 +108,8 @@ public class whotofollow {
 
 			IntWritable follower1 = new IntWritable();
 			IntWritable follower2 = new IntWritable();
+			
+			ArrayList<Point> data = new ArrayList<Point>();
 
 			int temp;
 
@@ -125,6 +127,30 @@ public class whotofollow {
 					context.write(follower1, follower2);
 				}
 				return;
+			}
+
+			// Generate key value pair (yi, yj) and (yj, yi)
+			while (st1.hasMoreTokens()) {
+
+				follower1.set(Integer.parseInt(st1.nextToken()));
+
+				while (st2.hasMoreTokens()) {
+
+					temp = Integer.parseInt(st2.nextToken());
+
+					if (follower1.get() != temp) {
+
+						follower2.set(temp);
+
+						Point p = new Point(follower1.get(), follower2.get());
+						if (!data.contains(p)) {
+							data.add(p);
+							context.write(follower1, follower2);
+						}
+					}
+				}
+				st2 = new StringTokenizer(values.toString());
+				st2.nextToken();
 			}
 		}
 	}
