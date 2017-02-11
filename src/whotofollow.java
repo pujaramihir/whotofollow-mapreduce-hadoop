@@ -235,6 +235,10 @@ public class whotofollow {
 
 				stringBuffer.append(f.positive + "(" + f.count + ") ");
 			}
+			
+			// Emit key value pairs
+			Text result = new Text(stringBuffer.toString());
+			context.write(user, result);
 		}
 	}
 
