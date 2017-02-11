@@ -67,6 +67,11 @@ public class whotofollow {
 	public class ReducerFirst extends Reducer<IntWritable, IntWritable, IntWritable, Text> {
 		public void reduce(IntWritable key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
 			
+			IntWritable user = key;
+			
+			StringBuffer stringBuffer = new StringBuffer("");
+			
+			System.out.println(key);
 		}
 	}
 	
