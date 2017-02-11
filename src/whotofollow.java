@@ -204,6 +204,17 @@ public class whotofollow {
 					data.put(Math.abs(whofollowsuser), followers);
 				}
 			}
+			
+			// Removes the number and its negation if found, also removed remaining negative numbers if any
+			while (s.hasNext()) {
+				Followers f = data.get(s.next());
+				if (!(f.positive == Math.abs(f.negative)) && f.positive > 0) {
+
+					if (f.count > 0) {
+						finalData.add(f);
+					}
+				}
+			}
 		}
 	}
 
