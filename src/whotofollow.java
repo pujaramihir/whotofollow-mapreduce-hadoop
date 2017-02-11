@@ -33,7 +33,7 @@ public class whotofollow {
 			// Key is ignored as.i""t only stores the offset of the line in the text file
             StringTokenizer st = new StringTokenizer(values.toString());
             
-            System.out.println(st.toString());
+            System.out.println(st.toString()+"");
 			
 		}
 	}
