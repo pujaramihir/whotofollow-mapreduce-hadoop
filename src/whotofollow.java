@@ -82,6 +82,10 @@ public class whotofollow {
                 stringBuffer.append(whofollowsuser+ " ");
                 
             }
+			
+			// emit user and result
+			Text result = new Text(stringBuffer.toString());
+            context.write(user, result);
             
 		}
 	}
