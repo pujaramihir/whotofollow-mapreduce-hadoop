@@ -228,6 +228,13 @@ public class whotofollow {
 					return 0;
 				}
 			});
+			
+			// Append the recommended users and its common user count
+			while (d.hasNext()) {
+				Followers f = d.next();
+
+				stringBuffer.append(f.positive + "(" + f.count + ") ");
+			}
 		}
 	}
 
