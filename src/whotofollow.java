@@ -39,6 +39,21 @@ public class whotofollow {
             
             int temp = Integer.parseInt(st.nextToken());
             user.set(temp); // set user value
+            
+            
+            //get follower user value from text
+        	while (st.hasMoreTokens()) {
+        		
+        		//convert followers value to int and set it into follow intwritable
+            	temp = Integer.parseInt(st.nextToken());
+                follow.set(temp);
+                
+                // emit user and follow key value pair 
+                context.write(follow, user);
+                
+                // emit negatibe user and follow key value pair
+                context.write(new IntWritable(-user.get()), new IntWritable(-follow.get()));
+            }
 		}
 	}
 	
@@ -57,6 +72,7 @@ public class whotofollow {
 	
 	
 	public static void main(String[] args) {
+
 		// create configuration 
 		Configuration conf = new Configuration();
 		
